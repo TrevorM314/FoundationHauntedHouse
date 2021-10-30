@@ -4,6 +4,9 @@
     <button type="button"
             @click="addGroup"
     >Add Group</button>
+    <button type="button"
+            @click="deque"
+    >Deque</button>
     <div>{{getList}}</div>
   </div>
 </template>
@@ -19,6 +22,9 @@ export default {
   methods: {
     addGroup() {
       this.$store.commit('enqueue', { name: "Trevor" });
+    },
+    deque() {
+      this.$store.commit("deque");
     }
   }
 }
