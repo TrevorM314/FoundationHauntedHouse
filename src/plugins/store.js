@@ -8,6 +8,7 @@ export default new Vuex.Store({
     plugins: [createPersistedState()],
     state: {
         queue: [],
+        curr_group_number: Number(1),
     },
     mutations: {
         enqueue(state, payload) {

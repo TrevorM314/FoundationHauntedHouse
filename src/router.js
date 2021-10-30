@@ -1,8 +1,8 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import Edit from "./pages/edit"
-import View from "./pages/view"
+import Edit from "./pages/add-group"
+import View from "./pages/group-list"
 
 Vue.use(Router);
 
