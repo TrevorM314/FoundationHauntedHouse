@@ -4,6 +4,9 @@
     <button type="button"
             @click="addGroup"
     >Add Group</button>
+    <button type="button"
+            @click="removeGroup"
+    >Remove Group</button>
     <div>{{getList}}</div>
   </div>
 </template>
@@ -19,7 +22,10 @@ export default {
   methods: {
     addGroup() {
       this.$store.commit('enqueue', { name: "Trevor" });
-    }
+    },
+      removeGroup() {
+        this.$store.commit('dequeue');
+      }
   }
 }
 </script>
