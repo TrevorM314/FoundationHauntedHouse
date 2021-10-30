@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import createMutationsSharer from "vuex-shared-mutations";
+import createPersistedState from "vuex-persistedstate";
 
 Vue.use(Vuex);
 
@@ -22,7 +22,5 @@ export default new Vuex.Store({
             state.queue.shift()
         }
     },
-    plugins: [createMutationsSharer({
-        predicate: ["mutation1", "mutation2"]
-    })]
+    plugins: [createPersistedState()]
 })
