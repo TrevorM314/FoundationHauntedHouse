@@ -20,6 +20,7 @@
             style="margin: 8px; margin-left: 480px; margin-right: 480px;"
             :headers="headers"
             :items="this.$store.state.queue.slice(1)"
+            hide-default-header
             hide-default-footer
             dense
             items-per-page="50"
@@ -54,17 +55,12 @@
             }
         },
         methods: {
-            getList() {
-                return this.$store.state.queue
-            },
             updateList() {
-                console.log("queue before: " + this.$store.state.queue);
                 if(localStorage.getItem('vuex')) {
                     // Replace the state object with the stored item
                     console.log(localStorage.getItem('vuex'));
                     Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuex')))
                 }
-                console.log("queue after: " + this.$store.state.queue);
                 return this.$store.state.queue;
             }
         }
