@@ -1,11 +1,11 @@
 <template>
   <div>
     <v-card dark class="text-center">
-      <v-img src="https://www.tripsavvy.com/thmb/rfULGIEBzqBba8PCTYKLsWGsd_4=/2122x1412/filters:fill(auto,1)/ParisCatacombs-9b0f678ccab940c28916e64afa309bfb.jpg">
+      <v-img src="https://www.tripsavvy.com/thmb/rfULGIEBzqBba8PCTYKLsWGsd_4=/2122x1412/filters:fill(auto,1)/ParisCatacombs-9b0f678ccab940c28916e64afa309bfb.jpg" max-height="1080px">
         <v-card-title class="justify-center">Into the Catacombs</v-card-title>
         <v-card-subtitle light>Foundation Open House</v-card-subtitle>
 
-        <v-card light style="background-color: #F75F1C; margin: 8px; margin-left: 480px; margin-right: 480px;">
+        <v-card light style="background-color: #F75F1C; margin: 8px; margin-left: 360px; margin-right: 360px;">
           <v-card-title>Next Up</v-card-title>
           <v-data-table
               style="background-color: #F75F1C;"
@@ -17,7 +17,7 @@
         </v-card>
 
         <v-data-table
-            style="margin: 8px; margin-left: 480px; margin-right: 480px;"
+            style="margin: 8px; margin-left: 360px; margin-right: 360px;"
             :headers="headers"
             :items="this.$store.state.queue.slice(1)"
             hide-default-header
@@ -44,7 +44,7 @@
             }
         },
         created() {
-            setInterval(() => { this.queue = this.updateList(); console.log("updating"); }, 1000);
+            setInterval(() => { this.queue = this.updateList(); }, 1000);
         },
         computed: {
             headers() {

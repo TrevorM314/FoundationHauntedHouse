@@ -16,6 +16,7 @@
       <v-btn v-on:click="clear">Clear Form</v-btn>
       <v-btn v-on:click="removeGroup" color="primary">Remove Group</v-btn>
       <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
+      <v-btn v-on:click="testText">Send Test Message</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -85,7 +86,7 @@ export default {
     }
   },
   created() {
-      setInterval(() => { this.queue = this.updateList(); console.log("updating"); }, 1000);
+      setInterval(() => { this.queue = this.updateList(); }, 1000);
   },
   computed: {
     phoneRules() {
@@ -156,10 +157,12 @@ export default {
     updateList() {
         if(localStorage.getItem('vuex')) {
             // Replace the state object with the stored item
-            console.log(localStorage.getItem('vuex'));
             Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuex')))
         }
         return this.$store.state.queue;
+    },
+    testText() {
+      this.$store.commit('send');
     }
   }
 }
