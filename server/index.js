@@ -1,7 +1,5 @@
-// const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const accountSid = '';
-// const authToken = process.env.TWILIO_AUTH_TOKEN;
-const authToken = '';
+const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
+const authToken = process.env.TWILIO_AUTH_TOKEN || '';
 console.log('account ID: ' + accountSid);
 console.log('authToken: ' + authToken);
 const client = require('twilio')(accountSid, authToken);
@@ -46,7 +44,7 @@ async function init() {
                 description: "Test send a text",
             },
             handler: async (req) => {
-                client.messages
+                await client.messages
                     .create({
                         from: twilio_number,
                         to: req.payload.to,

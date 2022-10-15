@@ -13,12 +13,16 @@ export default new Vuex.Store({
         curr_group_number: 1,
         num_removed: 0
     },
+    getters: {
+        nextGroup(state) {
+            return state.queue[0];
+        }
+    },
     mutations: {
         enqueue(state, payload) {
             state.queue.push(payload);
             state.full_queue.push(payload);
             state.curr_group_number++;
-            // TODO - send text here?
             if (payload.group_text) {
                 axios.post("/send/", {
                     to: payload.group_phone,
@@ -38,8 +42,6 @@ export default new Vuex.Store({
             if (state.queue.length > 0) {
                 state.queue.shift();
                 state.num_removed++;
-                // TODO - send text here?
-
             }
             if (state.queue.length > 1) {
                 if (state.queue[1].group_text) {

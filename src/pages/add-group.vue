@@ -90,7 +90,8 @@ export default {
   },
   computed: {
     phoneRules() {
-      return [ v => /\+1[0-9]{10}/.test(v) || "Error: Must be valid US phone number" ];
+      if (this.text === false) return true;
+      return [ v => /(\+1)?[0-9]{10}/.test(v) || "Error: Must be valid US phone number" ];
     },
     headers() {
         return [
@@ -105,12 +106,20 @@ export default {
   },
   methods: {
     clear() {
-        this.gname = "";
-        this.gsize = "";
+        this.$refs.form.reset();
         this.phone = "+1";
+        this.text = false;
     },
     addGroup() {
-      this.$store.commit('enqueue', { group_number: this.$store.state.curr_group_number, group_name: this.gname, group_size: this.gsize, group_phone: this.phone, group_text: this.text });
+      if (this.text && ! this.phone.startsWith("+1")) {
+        this.phone = "+1" + this.phone;
+      }
+      this.$store.commit('enqueue', {
+        group_number: this.$store.state.curr_group_number,
+        group_name: this.gname,
+        group_size: this.gsize,
+        group_phone: this.text ? this.phone : null,
+        group_text: this.text });
       this.$store.state.curr_group_number++;
       this.clear();
     },

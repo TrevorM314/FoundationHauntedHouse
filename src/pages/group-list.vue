@@ -1,38 +1,44 @@
 <template>
-  <div>
-    <v-card dark class="text-center">
-      <v-img src="https://www.tripsavvy.com/thmb/rfULGIEBzqBba8PCTYKLsWGsd_4=/2122x1412/filters:fill(auto,1)/ParisCatacombs-9b0f678ccab940c28916e64afa309bfb.jpg" max-height="1080px">
-        <v-card-title class="justify-center">Into the Catacombs</v-card-title>
-        <v-card-subtitle light>Foundation Open House</v-card-subtitle>
+  <div class="page">
 
-        <v-card light style="background-color: #F75F1C; margin: 8px; margin-left: 360px; margin-right: 360px;">
-          <v-card-title>Next Up</v-card-title>
-          <v-data-table
-              style="background-color: #F75F1C;"
-              :headers="headers"
-              :items="[this.$store.state.queue[0]]"
-              hide-default-footer
+    <!--
+    Previous Titles:
+      - Into the Catacombs
+      - Sunnyside Asylum
+    -->
+    <div class="banner">
+      <h1>Sunnyside Asylum</h1>
+      <h2>Foundation Open House</h2>
+    </div>
 
-          ></v-data-table>
-        </v-card>
+    <div class="body">
+      <v-card class="rounded-b-0">
+        <h2>Next Group</h2>
+        <div id="next-group">
+          {{nextGroup}}
+        </div>
+      </v-card>
 
-        <v-data-table
-            style="margin: 8px; margin-left: 360px; margin-right: 360px;"
-            :headers="headers"
-            :items="this.$store.state.queue.slice(1)"
-            hide-default-header
-            hide-default-footer
-            dense
-            items-per-page="50"
-        >
-          Catacombs Queue
-        </v-data-table>
-      </v-img>
+      <v-card class="queue rounded-t-0">
+        <table>
+          <tbody>
+            <tr
+              v-for="group in $store.state.queue.slice(1)"
+              :key="group.group_number"
+            >
+              <td>
+                {{group.group_number}}
+              </td>
+              <td>
+                {{group.group_name}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </v-card>
+    </div>
 
-
-    </v-card>
   </div>
-
 </template>
 
 <script>
@@ -40,20 +46,24 @@
         name: "view",
         data() {
             return {
-                queue: []
-            }
-        },
-        created() {
-            setInterval(() => { this.queue = this.updateList(); }, 1000);
-        },
-        computed: {
-            headers() {
-                return [
-                    { text: 'Group Number' , value: 'group_number' },
+                queue: [],
+                headers: [
+                    { text: 'Group Number' , value: 'group_number', width: '90%' },
                     { text: 'Group Name', value: 'group_name' }
                 ]
             }
         },
+
+        created() {
+            setInterval(() => { this.queue = this.updateList(); }, 1000);
+        },
+
+        computed: {
+            nextGroup() {
+                return this.$store.getters.nextGroup?.group_name;
+            }
+        },
+
         methods: {
             updateList() {
                 if(localStorage.getItem('vuex')) {
@@ -68,7 +78,70 @@
 </script>
 
 
-
 <style scoped>
+
+/* Variables */
+* {
+  --catacombs-bg: url("https://www.tripsavvy.com/thmb/rfULGIEBzqBba8PCTYKLsWGsd_4=/2122x1412/filters:fill(auto,1)/ParisCatacombs-9b0f678ccab940c28916e64afa309bfb.jpg");
+  --asylum-bg: url("https://assets3.thrillist.com/v1/image/776232/1200x630/flatten;crop_down;webp=auto;jpeg_quality=70");
+
+  --bg-tint: rgba(0, 0, 0, .7);
+}
+
+.page {
+  background:
+      linear-gradient(var(--bg-tint), var(--bg-tint)),
+      var(--asylum-bg) no-repeat center center fixed;
+
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+
+  height: 100%;
+}
+
+.banner {
+  background: rgba(0, 0, 0, .7);
+  width: 100vw;
+}
+
+h1, h2 {
+  text-align: center;
+  color: rgb(230, 230, 230);
+}
+
+.body {
+  padding: 50px 100px;
+}
+
+.v-card > h2 {
+  text-align: left;
+  color: rgba(0, 0, 0, .65);
+  margin-left: 5px;
+}
+
+#next-group {
+  font-size: 5em;
+  font-weight: 500;
+  line-height: 1;
+
+  text-align: center;
+}
+
+tr:nth-child(odd) {
+  background: rgb(200, 200, 200);
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+td:first-child {
+  width: 65px;
+  text-align: center;
+}
 
 </style>
