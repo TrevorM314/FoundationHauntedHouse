@@ -24,13 +24,13 @@
           <tbody>
             <tr
               v-for="group in $store.state.queue.slice(1)"
-              :key="group.group_number"
+              :key="group.number"
             >
               <td>
-                {{group.group_number}}
+                {{group.number}}
               </td>
               <td>
-                {{group.group_name}}
+                {{group.name}}
               </td>
             </tr>
           </tbody>
@@ -48,8 +48,8 @@
             return {
                 queue: [],
                 headers: [
-                    { text: 'Group Number' , value: 'group_number', width: '90%' },
-                    { text: 'Group Name', value: 'group_name' }
+                    { text: 'Group Number' , value: 'number', width: '90%' },
+                    { text: 'Group Name', value: 'name' }
                 ]
             }
         },
@@ -60,7 +60,7 @@
 
         computed: {
             nextGroup() {
-                return this.$store.getters.nextGroup?.group_name;
+                return this.$store.getters.nextGroup?.name;
             }
         },
 
@@ -124,7 +124,7 @@ h1, h2 {
 #next-group {
   font-size: 5em;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.2em;
 
   text-align: center;
 }

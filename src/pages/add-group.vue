@@ -5,16 +5,16 @@
       Next Group Number: {{ this.$store.state.curr_group_number }}
       </v-card-title>
       <v-form ref="form" v-model="valid" style="margin: 8px;">
-        <v-text-field v-model="gname" :rules="nameRules" label="Group Name" />
-        <v-text-field v-model="gsize" :rules="numRules" label="Number of people" />
-        <v-text-field v-model="phone" :rules="phoneRules" label="Phone number for group" />
-        <v-checkbox v-model="text" label="Send SMS message?"></v-checkbox>
+        <v-text-field v-model="group.name" :rules="nameRules" label="Group Name" />
+        <v-text-field v-model="group.size" :rules="numRules" label="Number of people" type="number"/>
+        <v-text-field v-model="group.phone" :rules="phoneRules" label="Phone number for group" />
+        <v-checkbox v-model="group.notifyByText" label="Send SMS message?"></v-checkbox>
       </v-form>
       <v-spacer></v-spacer>
       <v-card-actions>
       <v-btn v-on:click="addGroup" color="primary" :disabled="!valid">Add Group</v-btn>
       <v-btn v-on:click="clear">Clear Form</v-btn>
-      <v-btn v-on:click="removeGroup" color="primary">Remove Group</v-btn>
+      <v-btn v-on:click="sendGroup" color="primary">Send Group</v-btn>
       <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
       <v-btn v-on:click="testText">Send Test Message</v-btn>
       </v-card-actions>
@@ -23,10 +23,35 @@
     <v-data-table
       :headers="headers"
       :items="this.$store.state.queue"
+      disable-sort
     >
-      <template v-slot:item.edit="{ item }">
-        <v-btn color="primary" dark v-on:click="showEditItem(item)">
-          Edit
+      <template v-slot:item.actions="{ item }">
+        <v-btn
+            @click="showEditItem(item)"
+            icon
+        >
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn
+            @click="cancel(item)"
+            icon
+            color="red"
+        >
+          <v-icon>mdi-cancel</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:item.move="{ item }">
+        <v-btn
+            @click="move(item, directions.UP)"
+            icon
+        >
+          <v-icon>mdi-arrow-up</v-icon>
+        </v-btn>
+        <v-btn
+            @click="move(item, directions.DOWN)"
+            icon
+        >
+          <v-icon>mdi-arrow-down</v-icon>
         </v-btn>
       </template>
     </v-data-table>
@@ -34,11 +59,11 @@
     <v-dialog v-model="editDialog">
       <v-card style="padding: 8px;">
         <v-form>
-          <v-text-field v-model="editNumber" label="Group Number" readonly></v-text-field>
-          <v-text-field v-model="editName" :rules="nameRules" label="Group Name"></v-text-field>
-          <v-text-field v-model="editSize" :rules="numRules" label="Group Size"></v-text-field>
-          <v-text-field v-model="editPhone" :rules="phoneRules" label="Group Phone"></v-text-field>
-          <v-checkbox v-model="editText" label="Send an SMS?"></v-checkbox>
+          <p><span style="color: gray">Group Number:</span> {{editGroup.number}}</p>
+          <v-text-field v-model="editGroup.name" :rules="nameRules" label="Group Name"></v-text-field>
+          <v-text-field v-model="editGroup.size" :rules="numRules" label="Group Size"></v-text-field>
+          <v-text-field v-model="editGroup.phone" :rules="phoneRules" label="Group Phone"></v-text-field>
+          <v-checkbox v-model="editGroup.notifyByText" label="Send an SMS?"></v-checkbox>
         </v-form>
         <v-card-actions>
           <v-btn v-on:click="saveEdit" color="primary">Save Changes</v-btn>
@@ -61,69 +86,82 @@
 </template>
 
 <script>
+import {directions} from "@/enums";
+const phoneRegex = /(\+1)?[0-9]{10}/;
+
 export default {
   name: "edit",
-  data() {
-    return {
-        valid: false,
-        resetDialog: false,
-        editDialog: false,
-        gname: "",
-        gsize: "",
-        phone: "+1",
-        text: true,
-        nameRules: [ v => !!v || "Group name is required" ],
-        numRules: [
-            v => !!v || "Group count is required",
-            v => /[0-9]+/.test(v) || "Must be a number!"
-        ],
-        editNumber: 0,
-        editName: "",
-        editSize: "",
-        editPhone: "",
-        editText: true,
 
+  data() {
+    const defaultEditGroupForm = Object.freeze({
+      number: null,
+      name: "",
+      size: null,
+      phone: "",
+      notifyByText: true
+    })
+
+    return {
+      valid: false,
+      resetDialog: false,
+      editDialog: false,
+      group: {
+        name: "",
+        size: null,
+        phone: "+1",
+        notifyByText: true
+      },
+      nameRules: [ v => !!v || "Group name is required" ],
+      numRules: [
+          v => !!v || "Group count is required",
+      ],
+      editGroup: Object.assign({}, defaultEditGroupForm),
+      defaultEditGroupForm,
+
+      directions
     }
   },
+
   created() {
       setInterval(() => { this.queue = this.updateList(); }, 1000);
   },
+
   computed: {
     phoneRules() {
-      if (this.text === false) return true;
-      return [ v => /(\+1)?[0-9]{10}/.test(v) || "Error: Must be valid US phone number" ];
+      if (this.group.notifyByText === false) return [true];
+      return [ v => phoneRegex.test(v) || "Error: Must be valid US phone number" ];
     },
     headers() {
         return [
-            { text: 'Group Number' , value: 'group_number' },
-            { text: 'Group Name', value: 'group_name' },
-            { text: 'Group Size', value: 'group_size' },
-            { text: 'Phone', value: 'group_phone' },
-            { text: 'Send Text', value: 'group_text' },
-            { text: 'Edit', value: 'edit' }
+            { text: 'Group Number' , value: 'number', width: '1px'},
+            { text: 'Group Name', value: 'name' },
+            { text: 'Group Size', value: 'size' },
+            { text: 'Phone', value: 'phone' },
+            { text: 'Send Text', value: 'notifyByText', width: '1px'},
+            { text: 'Actions', value: 'actions', width: '104px', align: 'right' },
+            { text: 'Move', value: 'move'}
         ]
     }
   },
+
   methods: {
     clear() {
         this.$refs.form.reset();
-        this.phone = "+1";
-        this.text = false;
+        this.group.phone = "+1";
+        this.group.notifyByText = false;
     },
     addGroup() {
-      if (this.text && ! this.phone.startsWith("+1")) {
-        this.phone = "+1" + this.phone;
+      let group = Object.assign({}, this.group)
+      if (group.notifyByText && ! group.phone.startsWith("+1")) {
+        group.phone = "+1" + group.phone;
       }
-      this.$store.commit('enqueue', {
-        group_number: this.$store.state.curr_group_number,
-        group_name: this.gname,
-        group_size: this.gsize,
-        group_phone: this.text ? this.phone : null,
-        group_text: this.text });
-      this.$store.state.curr_group_number++;
+      if (! group.notifyByText && ! phoneRegex.test(group.phone)) {
+        group.phone = null
+      }
+      this.$store.commit('enqueue', group);
       this.clear();
     },
-    removeGroup() {
+    sendGroup() {
       this.$store.commit('dequeue');
     },
     showResetQueue() {
@@ -137,31 +175,30 @@ export default {
       this.$store.commit('reset');
       this.resetDialog = false;
     },
-    showEditItem(item) {
-      this.editNumber = item.group_number;
-      this.editName = item.group_name;
-      this.editSize = item.group_size;
-      this.editPhone = item.group_phone;
-      this.editText = item.group_text;
+    showEditItem(group) {
+      Object.assign(this.editGroup, group);
       this.editDialog = true;
     },
     hideEditItem() {
-      this.editNumber = "";
-      this.editName = "";
-      this.editSize = "";
-      this.editPhone = "";
-      this.editText = "";
+      this.editGroup = Object.assign({}, this.defaultEditGroupForm);
       this.editDialog = false;
     },
     saveEdit() {
-        this.$store.commit('edit', {
-            group_number: this.editNumber,
-            group_name: this.editName,
-            group_size: this.editSize,
-            group_phone: this.editPhone,
-            group_text: this.editText
-        });
+        this.$store.commit('edit', this.editGroup);
         this.hideEditItem();
+    },
+    cancel(group) {
+        console.log(group)
+        this.$store.commit('cancel', {
+            groupNumber: group.number,
+            noShow: false
+        })
+    },
+    move(group, direction) {
+      this.$store.commit('move', {
+        groupNumber: group.number,
+        direction
+      })
     },
     updateList() {
         if(localStorage.getItem('vuex')) {
