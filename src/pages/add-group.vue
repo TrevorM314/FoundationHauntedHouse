@@ -2,7 +2,7 @@
   <v-container>
     <v-card style="padding: 8px;">
       <v-card-title>
-      Next Group Number: {{ this.$store.state.curr_group_number }}
+      Next Group Number: {{ this.$store.state.nextRegistrationNumber }}
       </v-card-title>
       <v-form ref="form" v-model="valid" style="margin: 8px;">
         <v-text-field v-model="group.name" :rules="nameRules" label="Group Name" />
@@ -12,11 +12,12 @@
       </v-form>
       <v-spacer></v-spacer>
       <v-card-actions>
-      <v-btn v-on:click="addGroup" color="primary" :disabled="!valid">Add Group</v-btn>
-      <v-btn v-on:click="clear">Clear Form</v-btn>
-      <v-btn v-on:click="sendGroup" color="primary">Send Group</v-btn>
-      <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
-      <v-btn v-on:click="testText">Send Test Message</v-btn>
+        <v-btn v-on:click="addGroup" color="primary" :disabled="!valid">Add Group</v-btn>
+        <v-btn v-on:click="clear">Clear Form</v-btn>
+        <v-btn v-on:click="sendGroup" color="primary">Send Group</v-btn>
+        <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
+        <v-btn v-on:click="testText">Send Test Message</v-btn>
+        <v-btn v-on:click="downloadHistory">Download Stats</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -86,6 +87,7 @@
 </template>
 
 <script>
+import {saveAs} from "file-saver"
 import {directions} from "@/enums";
 const phoneRegex = /(\+1)?[0-9]{10}/;
 
@@ -152,7 +154,7 @@ export default {
     },
     addGroup() {
       let group = Object.assign({}, this.group)
-      if (group.notifyByText && ! group.phone.startsWith("+1")) {
+      if (phoneRegex.test(group.phone) && ! group.phone.startsWith("+1")) {
         group.phone = "+1" + group.phone;
       }
       if (! group.notifyByText && ! phoneRegex.test(group.phone)) {
@@ -209,6 +211,13 @@ export default {
     },
     testText() {
       this.$store.commit('send');
+    },
+    downloadHistory() {
+      const history = this.$store.getters.queueHisory;
+      const downloadedFile = new Blob([JSON.stringify(history)], {
+        type: 'application/json'
+      });
+      saveAs(downloadedFile, "HauntedHouseHistory.json");
     }
   }
 }

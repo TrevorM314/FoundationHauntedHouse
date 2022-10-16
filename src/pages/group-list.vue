@@ -23,7 +23,7 @@
         <table>
           <tbody>
             <tr
-              v-for="group in $store.state.queue.slice(1)"
+              v-for="(group, idx) in $store.state.queue.slice(1)"
               :key="group.number"
             >
               <td>
@@ -31,6 +31,9 @@
               </td>
               <td>
                 {{group.name}}
+              </td>
+              <td>
+                {{millisecondsToHHMMSS(timeBetweenGroups * (idx+1))}}
               </td>
             </tr>
           </tbody>
@@ -42,39 +45,57 @@
 </template>
 
 <script>
-    export default {
-        name: "view",
-        data() {
-            return {
-                queue: [],
-                headers: [
-                    { text: 'Group Number' , value: 'number', width: '90%' },
-                    { text: 'Group Name', value: 'name' }
-                ]
-            }
-        },
+function millisecondsToHHMMSS(milliseconds) {
+  let remainder = milliseconds
+  const hours = Math.floor(remainder / (1000 * 60 * 60));
+  remainder = remainder % (1000 * 60 * 60)
+  const minutes = Math.floor(remainder / (1000 * 60));
+  remainder = remainder % (1000 * 60);
+  const seconds = Math.floor(remainder / 1000);
+  return hours.toString().padStart(2, '0') + ':' +
+      minutes.toString().padStart(2, '0') + ':' +
+      seconds.toString().padStart(2, '0')
+}
 
-        created() {
-            setInterval(() => { this.queue = this.updateList(); }, 1000);
-        },
-
-        computed: {
-            nextGroup() {
-                return this.$store.getters.nextGroup?.name;
-            }
-        },
-
-        methods: {
-            updateList() {
-                if(localStorage.getItem('vuex')) {
-                    // Replace the state object with the stored item
-                    console.log(localStorage.getItem('vuex'));
-                    Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuex')))
-                }
-                return this.$store.state.queue;
-            }
+export default {
+    name: "view",
+    data() {
+        return {
+            queue: [],
+            headers: [
+                { text: 'Group Number' , value: 'number', width: '90%' },
+                { text: 'Group Name', value: 'name' }
+            ]
         }
+    },
+
+    created() {
+        setInterval(() => { this.queue = this.updateList(); }, 1000);
+    },
+
+    computed: {
+        nextGroup() {
+            return this.$store.getters.nextGroup?.name;
+        },
+
+        timeBetweenGroups() {
+            return this.$store.getters.avgTimeBetweenGroups;
+        }
+    },
+
+    methods: {
+        updateList() {
+            if(localStorage.getItem('vuex')) {
+                // Replace the state object with the stored item
+                console.log(localStorage.getItem('vuex'));
+                Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuex')))
+            }
+            return this.$store.state.queue;
+        },
+
+        millisecondsToHHMMSS
     }
+}
 </script>
 
 
@@ -129,19 +150,28 @@ h1, h2 {
   text-align: center;
 }
 
-tr:nth-child(odd) {
-  background: rgb(200, 200, 200);
-}
-
 table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
 
+tr {
+  font-size: 1.3em;
+}
+
+tr:nth-child(odd) {
+  background: rgb(200, 200, 200);
+}
+
 td:first-child {
   width: 65px;
   text-align: center;
+}
+
+td:last-child {
+  text-align: end;
+  padding-right: 8px;
 }
 
 </style>

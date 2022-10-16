@@ -11,13 +11,28 @@ export default new Vuex.Store({
     plugins: [createPersistedState()],
     state: {
         queue: [], // list of Group objects
-        full_queue: [], // list of Group Objects, includes groups that already went
+        queueHistory: [], // list of Group Objects, includes groups that already went
         nextRegistrationNumber: 1,
     },
 
     getters: {
         nextGroup(state) {
             return state.queue[0];
+        },
+
+        queueHisory(state) {
+            return state.queueHistory;
+        },
+
+        avgTimeBetweenGroups(state) {
+            let entryTimes = state.queueHistory.map(group => group.entryTime);
+            entryTimes = entryTimes.filter(time => time !== undefined).sort();
+            if (entryTimes.length < 2) return 0;
+            let cumulativeWait = 0;
+            for (let i=1; i < entryTimes.length; i++) {
+                cumulativeWait += entryTimes[i] - entryTimes[i-1];
+            }
+            return cumulativeWait / (entryTimes.length - 1);
         }
     },
 
@@ -29,7 +44,7 @@ export default new Vuex.Store({
             group.registrationTime = Date.now()
 
             state.queue.push(group);
-            state.full_queue.push(group);
+            state.queueHistory.push(group);
             state.nextRegistrationNumber++;
 
             if (group.notifyByText) {
@@ -57,7 +72,9 @@ export default new Vuex.Store({
 
         dequeue(state) {
             if (state.queue.length > 0) {
-                state.queue[0].entryTime = Date.now();
+                let group = Object.assign({entryTime: Date.now()}, state.queue[0]);
+                const idx = state.queueHistory.findIndex(g => g.number === group.number);
+                state.queueHistory[idx] = group;
                 state.queue.shift();
             }
             if (state.queue.length > 1) {
@@ -98,6 +115,10 @@ export default new Vuex.Store({
                 group.cancellationTime = Date.now();
             }
             state.queue.splice(idx, 1);
+
+            // update the queue history
+            idx = state.queueHistory.findIndex(g => g.number === group.number);
+            state.queueHistory[idx] = group;
         },
 
         /*
@@ -119,7 +140,7 @@ export default new Vuex.Store({
 
         reset(state) {
             state.queue = [];
-            state.full_queue = [];
+            state.queueHistory = [];
             state.nextRegistrationNumber = 1;
         },
 

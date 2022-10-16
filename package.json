@@ -8,8 +8,8 @@
     "lint": "vue-cli-service lint",
     "api": "nodemon --ignore ./node_modules server/index.js"
   },
-  "engines" : {
-    "node" : ">=16.0.0 <17.0.0"
+  "engines": {
+    "node": ">=16.0.0 <17.0.0"
   },
   "engineStrict": true,
   "dependencies": {
@@ -21,6 +21,7 @@
     "core-js": "^3.6.5",
     "dotenv": "^10.0.0",
     "express": "latest",
+    "file-saver": "^2.0.5",
     "nodemon": "^2.0.14",
     "twilio": "^3.70.0",
     "vue": "^2.6.11",
