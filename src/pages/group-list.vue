@@ -4,11 +4,11 @@
     <!--
     Previous Titles:
       - Into the Catacombs
-      - Sunnyside Asylum
+      - The Asylum: A Foundation Open House
     -->
     <div class="banner">
-      <h1>Sunnyside Asylum</h1>
-      <h2>Foundation Open House</h2>
+      <h1>The Asylum</h1>
+      <h2>A Foundation Open House</h2>
     </div>
 
     <div class="body">
@@ -136,6 +136,10 @@ h1, h2 {
   padding: 50px 100px;
 }
 
+.v-card {
+  background-color: rgba(255, 255, 255, .5);
+}
+
 .v-card > h2 {
   text-align: left;
   color: rgba(0, 0, 0, .65);
@@ -158,10 +162,11 @@ table {
 
 tr {
   font-size: 1.3em;
+  background: rgba(255, 255, 255, .5);
 }
 
 tr:nth-child(odd) {
-  background: rgb(200, 200, 200);
+  background: rgba(200, 200, 200, .5);
 }
 
 td:first-child {
