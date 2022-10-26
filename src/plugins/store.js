@@ -1,9 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import createPersistedState from 'vuex-persistedstate';
-import axios from "../main.js";
-
 import {directions} from "@/enums";
+import { sendText } from "@/smsUtil";
 
 Vue.use(Vuex);
 
@@ -38,7 +37,7 @@ export default new Vuex.Store({
 
     mutations: {
         // Payload should be of type Group
-        enqueue(state, payload) {
+        async enqueue(state, payload) {
             let group = payload
             group.number = state.nextRegistrationNumber;
             group.registrationTime = Date.now()
@@ -48,29 +47,29 @@ export default new Vuex.Store({
             state.nextRegistrationNumber++;
 
             if (group.notifyByText) {
-                axios.post("/send/", {
-                    to: group.phone,
-                    body: `You are in line for Foundation's open house!` +
-                          `\nGroup name: ${group.name}` +
-                          `\nGroup number: ${group.number}`
-                });
+                await sendText(
+                    group.phone,
+                    `You are in line for Foundation's open house!` +
+                    `\nGroup name: ${group.name}` +
+                    `\nGroup number: ${group.number}`
+                )
             }
 
             if (state.queue.length === 2) {
                 let nextGroup = state.queue[1]
                 if (nextGroup.notifyByText) {
-                    axios.post("/send/", {
-                        to: state.queue[1].phone,
-                        body: `You are next in line for Foundation's open house! ` +
-                              `Please make your way to the Sammy lobby if you're not there already!` +
-                              `\n${nextGroup.name}` +
-                              `\nGroup number: ${nextGroup.number}`
-                    });
+                    await sendText(
+                        state.queue[1].phone,
+                        `You are next in line for Foundation's open house! ` +
+                        `Please make your way to the Sammy lobby if you're not there already!` +
+                        `\n${nextGroup.name}` +
+                        `\nGroup number: ${nextGroup.number}`
+                    );
                 }
             }
         },
 
-        dequeue(state) {
+        async dequeue(state) {
             if (state.queue.length > 0) {
                 let group = Object.assign({entryTime: Date.now()}, state.queue[0]);
                 const idx = state.queueHistory.findIndex(g => g.number === group.number);
@@ -80,14 +79,13 @@ export default new Vuex.Store({
             if (state.queue.length > 1) {
                 let nextGroup = state.queue[1]
                 if (nextGroup.notifyByText) {
-                    // TODO: refactor into function. Same data as above
-                    axios.post("/send/", {
-                        to: nextGroup.phone,
-                        body: `You are next in line for Foundation's open house! ` +
-                              `Please make your way to the Sammy lobby if you're not there already!` +
-                              `\n${nextGroup.name}` +
-                              `\nGroup number: ${nextGroup.number}`
-                    });
+                    await sendText(
+                        nextGroup.phone,
+                        `You are next in line for Foundation's open house! ` +
+                        `Please make your way to the Sammy lobby if you're not there already!` +
+                        `\n${nextGroup.name}` +
+                        `\nGroup number: ${nextGroup.number}`
+                    );
                 }
             }
         },
@@ -142,16 +140,6 @@ export default new Vuex.Store({
             state.queue = [];
             state.queueHistory = [];
             state.nextRegistrationNumber = 1;
-        },
-
-        send() {
-            axios.post("/send/", {
-                to: '+13143499090',
-                body: 'Testing 123'
-            })
-            .then(result => {
-                console.log(result);
-            });
         }
     }
 })
