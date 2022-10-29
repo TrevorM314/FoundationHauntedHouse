@@ -26,7 +26,8 @@ export default new Vuex.Store({
         avgTimeBetweenGroups(state) {
             let entryTimes = state.queueHistory.map(group => group.entryTime);
             entryTimes = entryTimes.filter(time => time !== undefined).sort();
-            if (entryTimes.length < 2) return 0;
+            if (entryTimes.length < 2) return undefined;
+
             let cumulativeWait = 0;
             for (let i=1; i < entryTimes.length; i++) {
                 cumulativeWait += entryTimes[i] - entryTimes[i-1];

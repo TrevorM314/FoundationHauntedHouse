@@ -46,6 +46,10 @@
 
 <script>
 function millisecondsToHHMMSS(milliseconds) {
+  if (isNaN(milliseconds)) {
+    return "";
+  }
+
   let remainder = milliseconds
   const hours = Math.floor(remainder / (1000 * 60 * 60));
   remainder = remainder % (1000 * 60 * 60)
@@ -87,7 +91,6 @@ export default {
         updateList() {
             if(localStorage.getItem('vuex')) {
                 // Replace the state object with the stored item
-                console.log(localStorage.getItem('vuex'));
                 Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuex')))
             }
             return this.$store.state.queue;
