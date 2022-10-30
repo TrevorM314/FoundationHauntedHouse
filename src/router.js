@@ -1,8 +1,8 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import Edit from "./pages/add-group"
-import View from "./pages/group-list"
+import Registration from "./pages/registration"
+import Waitlist from "./pages/waitlist"
 
 Vue.use(Router);
 
@@ -11,7 +11,7 @@ export default new Router ({
     base: process.env.BASE_URL,
     linkActiveClass: "none",
     routes: [
-        {name: "edit", path: "/edit", component: Edit },
-        {name: "view", path: "/view", component: View },
+        {name: "registration", path: "/registration", component: Registration },
+        {name: "waitlist", path: "/waitlist", component: Waitlist },
     ]
 })

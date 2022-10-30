@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card style="padding: 8px;">
+    <v-card class="pa-2 mb-4">
       <v-card-title>
       Next Group Number: {{ this.$store.state.nextRegistrationNumber }}
       </v-card-title>
@@ -12,52 +12,69 @@
       </v-form>
       <v-spacer></v-spacer>
       <v-card-actions>
-        <v-btn v-on:click="addGroup" color="primary" :disabled="!valid">Add Group</v-btn>
+        <v-btn v-on:click="addGroup"
+               color="primary"
+               :disabled="!valid"
+        >Add Group</v-btn>
+        <v-spacer></v-spacer>
         <v-btn v-on:click="clear">Clear Form</v-btn>
-        <v-btn v-on:click="sendGroup" color="primary">Send Group</v-btn>
-        <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
-        <v-btn v-on:click="testText">Send Test Message</v-btn>
-        <v-btn v-on:click="downloadHistory">Download Stats</v-btn>
       </v-card-actions>
     </v-card>
 
-    <v-data-table
-      :headers="headers"
-      :items="this.$store.state.queue"
-      disable-sort
-    >
-      <template v-slot:item.actions="{ item }">
-        <v-btn
-            @click="showEditItem(item)"
-            icon
-        >
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn
-            @click="cancel(item)"
-            icon
-            color="red"
-        >
-          <v-icon>mdi-cancel</v-icon>
-        </v-btn>
-      </template>
-      <template v-slot:item.move="{ item }">
-        <v-btn
-            @click="move(item, directions.UP)"
-            icon
-        >
-          <v-icon>mdi-arrow-up</v-icon>
-        </v-btn>
-        <v-btn
-            @click="move(item, directions.DOWN)"
-            icon
-        >
-          <v-icon>mdi-arrow-down</v-icon>
-        </v-btn>
-      </template>
-    </v-data-table>
 
-    <v-dialog v-model="editDialog">
+    <v-card class="pa-2">
+      <v-card-actions id="waitlistActions">
+        <v-btn v-on:click="sendGroup" color="primary">Send Group</v-btn>
+        <v-btn v-on:click="downloadHistory"
+               icon
+               title="Download"
+        >
+          <v-icon>mdi-download</v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn v-on:click="showResetQueue" color="error">Reset Queue</v-btn>
+      </v-card-actions>
+      <v-data-table
+        :headers="headers"
+        :items="this.$store.state.queue"
+        disable-sort
+        disable-pagination
+        hide-default-footer
+      >
+        <template v-slot:item.actions="{ item }">
+          <v-btn
+              @click="showEditItem(item)"
+              icon
+          >
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+              @click="showCancelDialog(item)"
+              icon
+              color="red"
+          >
+            <v-icon>mdi-cancel</v-icon>
+          </v-btn>
+        </template>
+        <template v-slot:item.move="{ item }">
+          <v-btn
+              @click="move(item, directions.UP)"
+              icon
+          >
+            <v-icon>mdi-arrow-up</v-icon>
+          </v-btn>
+          <v-btn
+              @click="move(item, directions.DOWN)"
+              icon
+          >
+            <v-icon>mdi-arrow-down</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+
+
+    <v-dialog v-model="editDialog" max-width="500px">
       <v-card style="padding: 8px;">
         <v-form>
           <p><span style="color: gray">Group Number:</span> {{editGroup.number}}</p>
@@ -68,25 +85,45 @@
         </v-form>
         <v-card-actions>
           <v-btn v-on:click="saveEdit" color="primary">Save Changes</v-btn>
+          <v-spacer></v-spacer>
           <v-btn v-on:click="hideEditItem">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="resetDialog">
+    <v-dialog v-model="resetDialog" max-width="500px">
       <v-card style="padding: 8px;">
         <v-card-title>Are you sure you want to reset the queue?</v-card-title>
         <v-card-subtitle>You cannot undo this action.</v-card-subtitle>
         <v-card-actions>
-          <v-btn v-on:click="resetQueue" color="primary">Reset</v-btn>
+          <v-btn v-on:click="resetQueue" color="error">Reset</v-btn>
+          <v-spacer></v-spacer>
           <v-btn v-on:click="hideResetQueue">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="cancelGroupDialog.active" max-width="500px">
+      <v-card class="pa-2">
+        <v-card-title>Are you sure?</v-card-title>
+        <v-card-subtitle>You will not be able to recover this group</v-card-subtitle>
+        <v-card-actions>
+          <v-btn @click="cancel(cancelGroupDialog.group)"
+                 color="error"
+          >
+            Cancel Group
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn @click="cancelGroupDialog.active = false;">Nevermind</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
+
 <script>
+
 import {saveAs} from "file-saver"
 import {directions} from "@/enums";
 const phoneRegex = /(\+1)?[0-9]{10}/;
@@ -105,8 +142,14 @@ export default {
 
     return {
       valid: false,
+
       resetDialog: false,
       editDialog: false,
+      cancelGroupDialog: {
+        active: false,
+        group: undefined
+      },
+
       group: {
         name: "",
         size: null,
@@ -140,8 +183,8 @@ export default {
             { text: 'Group Size', value: 'size' },
             { text: 'Phone', value: 'phone' },
             { text: 'Send Text', value: 'notifyByText', width: '1px'},
-            { text: 'Actions', value: 'actions', width: '104px', align: 'right' },
-            { text: 'Move', value: 'move'}
+            { text: 'Actions', value: 'actions', width: '104px', align: 'center' },
+            { text: 'Move', value: 'move', width: '104px', align: 'center'}
         ]
     }
   },
@@ -168,7 +211,6 @@ export default {
     },
     showResetQueue() {
       this.resetDialog = true;
-      console.log(this.resetDialog);
     },
     hideResetQueue() {
       this.resetDialog = false;
@@ -189,12 +231,16 @@ export default {
         this.$store.commit('edit', this.editGroup);
         this.hideEditItem();
     },
+    showCancelDialog(group) {
+      this.cancelGroupDialog.group = group;
+      this.cancelGroupDialog.active = true;
+    },
     cancel(group) {
-        console.log(group)
         this.$store.commit('cancel', {
             groupNumber: group.number,
             noShow: false
-        })
+        });
+        this.cancelGroupDialog.active = false;
     },
     move(group, direction) {
       this.$store.commit('move', {
@@ -221,8 +267,14 @@ export default {
     }
   }
 }
+
 </script>
 
+
 <style scoped>
+
+.container {
+  max-width: 1024px;
+}
 
 </style>
